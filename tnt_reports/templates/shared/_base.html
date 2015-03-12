@@ -1,0 +1,49 @@
+<!doctype html>
+<head>
+    <title>TNT Reports :: {%block title %}{% endblock title %}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='customs/img/favicon.ico') }}" type="image/x-icon">
+
+    <!-- Components CSS -->
+    <link href="{{ url_for('static', filename='components/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='components/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='components/flaty/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='customs/css/default.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <div id="wrapper">
+
+        <div id="sidebar-wrapper">
+            <p>
+                Menu
+            </p>
+        </div>
+
+        <div id="page-content-wrapper">
+        <div class="row">
+        <div class="col-md-12 navbar-custom">
+            <a class="navbar-brand" href="javascript:void(0)" id="menu-toggle">
+                <span class="fa fa-th"></span>
+            </a>
+        </div>
+        </div>
+
+
+            <div id="container">
+                {% include "shared/_messages.html" %}
+                {% block content %}{%endblock content %}
+            </div>
+        </div>
+
+    </div>
+</body>
+
+{% block scripts %}
+    <!-- Components JS -->
+    <script src="{{ url_for('static', filename='components/jquery/jquery-1.11.2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='components/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='customs/js/menu-toggle.js') }}"></script>
+{% endblock scripts %}

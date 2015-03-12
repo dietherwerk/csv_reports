@@ -11,6 +11,12 @@ class Report(db.Model):
     created_date = db.Column(db.DateTime, index=True, default=datetime.now)
     updated_date = db.Column(db.DateTime, nullable=True)
     filename = db.Column(db.String(255))
+    reference_month = db.Column(db.Integer)
+    reference_year = db.Column(db.Integer)
+    market = db.Column(db.String(30))
+    processed_rows = db.Column(db.Integer)
+    total_rows = db.Column(db.Integer)
+    state = db.Column(db.String(30))
     datas = db.relationship('Data', backref='datas', lazy='dynamic')
 
 
