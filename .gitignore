@@ -22,10 +22,8 @@ scripts/*.csv
 *.sqlite
 *.sqlite-journal
 *.orig
-*csv_uploads/
-csv_uploads/
-csv_uploads/*
-csv_uploads
+csv_upload/*
+
 
 #Test runner
 htmlcov/

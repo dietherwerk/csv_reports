@@ -35,6 +35,7 @@
 		            <td class="center col-md-1">{{ object.market }}</td>
 		            <td class="center col-md-2">{{ object.state }} - {{ object.processed_rows }}/{{ object.total_rows }} </td>
 		            <td class="center col-md-1">
+		              <a href="{{ url_for ('report', id=object.id) }}" class="btn btn-primary btn-xs">VER</a>
 		              <a href="#" class="btn btn-danger btn-xs"> <i class="fa fa-trash"></i> EXCLUIR</a>
 		            </td>
 		        </tr>

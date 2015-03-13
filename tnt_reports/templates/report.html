@@ -1,0 +1,100 @@
+{% extends "shared/_base.html" %}
+
+{%block title %}Reports{% endblock title %}
+
+
+{% block content %}
+
+<div class="col-md-12">
+    <h1><i class="fa fa-home"></i> {{ report.filename }}</h1>
+    <hr>
+    <div class="row">
+	    <div class="col-md-8 col-md-offset-2">
+			<div class="progress">
+				<div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em; width: {{ progress }}%">
+					{{ progress }}% Completo
+				</div>
+	    	</div>
+	    </div>
+    </div>
+
+    <div class="row">
+    	<div class="col-md-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+				<h2 class="panel-title center">Criado em</h2>
+				</div>
+				<div class="panel-body center">
+				{{ report.created_date }}
+				</div>
+			</div>
+		</div>
+
+    	<div class="col-md-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+				<h2 class="panel-title center">Atualizado em</h2>
+				</div>
+				<div class="panel-body center">
+				{{ report.created_date }}
+				</div>
+			</div>
+		</div>
+
+
+    	<div class="col-md-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+				<h2 class="panel-title center">Referência</h2>
+				</div>
+				<div class="panel-body center">
+				{{ report.reference_month }}/{{ report.reference_year }}
+				</div>
+			</div>
+		</div>
+
+
+    	<div class="col-md-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+				<h2 class="panel-title center">Market</h2>
+				</div>
+				<div class="panel-body center">
+				{{ report.market }}
+				</div>
+			</div>
+		</div>
+
+
+    	<div class="col-md-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+				<h2 class="panel-title center">Linhas</h2>
+				</div>
+				<div class="panel-body center">
+				{{ report.total_rows }}
+				</div>
+			</div>
+		</div>
+
+    	<div class="col-md-2">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+				<h2 class="panel-title center">Situação</h2>
+				</div>
+				<div class="panel-body center">
+				{{ report.state }}
+				</div>
+			</div>
+		</div>
+
+
+    </div>
+
+    </div>
+
+
+
+</div>
+
+{% endblock content %}

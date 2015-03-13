@@ -7,3 +7,9 @@ UPLOAD_FOLDER = os.path.join(basedir, 'csv_upload/')
 ALLOWED_EXTENSIONS = set(['txt', 'csv'])
 
 SECRET_KEY = 'BDB5DA4AFA58E76F51C8F5CD4794B'
+
+PARTNERS = {
+    'claroar',
+    'clarobr',
+    'clarope',
+}
