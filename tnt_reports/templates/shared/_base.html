@@ -14,31 +14,11 @@
 </head>
 
 <body>
-    <div id="wrapper">
-
-        <div id="sidebar-wrapper">
-            <p>
-                Menu
-            </p>
-        </div>
-
-        <div id="page-content-wrapper">
-        <div class="row">
-        <div class="col-md-12 navbar-custom">
-            <a class="navbar-brand" href="javascript:void(0)" id="menu-toggle">
-                <span class="fa fa-th"></span>
-            </a>
-        </div>
-        </div>
-
-
             <div id="container">
                 {% include "shared/_messages.html" %}
                 {% block content %}{%endblock content %}
             </div>
-        </div>
 
-    </div>
 </body>
 
 {% block scripts %}

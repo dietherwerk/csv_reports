@@ -5,12 +5,20 @@
 
 {% block content %}
 
-<div class="col-md-12">
-    <h1><i class="fa fa-upload"></i> Upload New File </h1>
-    <form action="" method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=Upload>
+<div class="col-xs-12 col-md-6">
+    <h1><i class="fa fa-upload"></i> Enviar Novo CSV</h1>
+    <form action="{{ url_for ('new_report') }}" method="post" enctype="multipart/form-data">
+        {% for field in form %}
+            <p>
+                {{ field.label }}
+                {{ field(class="form-control") }}
+            </p>
+       {% endfor %}
+       <p>
+        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Salvar</button>
+        <a href="#" class="btn btn-info"> <i class="fa fa-arrow-left"></i> Voltar</a>
     </form>
+
 </div>
 
 {% endblock content %}

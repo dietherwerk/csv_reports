@@ -8,12 +8,12 @@ import time
 
 # App Import
 from . import db
-from ..config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
+from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
 from .models import Data, Report
 
 
-def report_register(filename):
-    report = create_report(filename)
+def report_register(filename, reference_month, reference_year, market):
+    report = create_report(filename, reference_month, reference_year, market)
     report.processed_rows = 0
     report.state = u'Processando'
     db.session.add(report)
@@ -38,7 +38,7 @@ def importing_to_bd(filename, report_id):
     for row in xrange(len(dataframe.index)):
         if row == 0:
             continue
-        data = create_data(dataframe, row)
+        data = create_data(dataframe, row, report.id)
         report.processed_rows += 1
         db.session.add(data, report)
         db.session.commit()
@@ -64,7 +64,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-def create_data(dataframe, row):
+def create_data(dataframe, row, report_id):
     # Date format in reports: 2015-01-29 00:00:00.0
     string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
     data = Data()
@@ -92,20 +92,24 @@ def create_data(dataframe, row):
     data.trash_file_count = int(dataframe.iloc[row, 19].replace('"', ''))
     data.last_seen = datetime.strptime(dataframe.iloc[row, 20].replace('"', ''), string_for_convert_date)
     data.total_share_count = int(dataframe.iloc[row, 21].replace('"', ''))
+    data.report_id = report_id
     # TODO: Refactor using Regex
     no_digits = []
     for i in first_column[0]:
         if not i.isdigit():
             no_digits.append(i)
     result = ''.join(no_digits)
-    result = result.replace('-', '')
+    result = result.replace('-', '').replace('"', '')
     data.partner = result.replace('sync', '')
     return data
 
 
-def create_report(filename):
+def create_report(filename, reference_month, reference_year, market):
     report = Report()
     report.filename = filename
+    report.reference_month = reference_month
+    report.reference_year = reference_year
+    report.market = market
     db.session.add(report)
     db.session.commit()
     return report
