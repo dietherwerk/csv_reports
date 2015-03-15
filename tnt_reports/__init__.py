@@ -1,4 +1,8 @@
+# coding: utf-8
+# Framework imports
 from flask import Flask
+
+# Lib imports
 from flask.ext.sqlalchemy import SQLAlchemy
 
 

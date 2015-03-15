@@ -1,8 +1,6 @@
 # coding: utf-8
-
-import os
-
 # Python imports
+import os
 from datetime import datetime
 
 # Framework imports
@@ -10,11 +8,10 @@ from flask import request, redirect, url_for, flash, render_template
 from werkzeug import secure_filename
 
 # App imports
-from . import app, db
-from .processes import allowed_file, report_register
+from . import app
+from ..config import UPLOAD_FOLDER, PARTNERS
 from .models import Data, Report
-
-from config import UPLOAD_FOLDER, PARTNERS
+from .processes import allowed_file, report_register
 
 
 @app.route('/', methods=['GET'])
