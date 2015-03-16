@@ -68,39 +68,46 @@ def create_data(dataframe, row, report_id):
     # Date format in reports: 2015-01-29 00:00:00.0
     string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
     data = Data()
+
+    # Remove quotes
+    for column in xrange(len(dataframe.columns)):
+        dataframe.iloc[row, column] = dataframe.iloc[row, column].replace('"', '')
+
     first_column = dataframe.iloc[row, 0].split(',')
-    data.customer_extref = first_column[0].replace('"', '')
-    data.first_use = datetime.strptime(first_column[1].replace('"', ''), string_for_convert_date)
-    data.created_date = datetime.strptime(dataframe.iloc[row, 1].replace('"', ''), string_for_convert_date)
-    data.uuid = dataframe.iloc[row, 2].replace('"', '')
-    data.state = int(dataframe.iloc[row, 3].replace('"', ''))
-    data.total_quota_usage = int(dataframe.iloc[row, 4].replace('"', ''))
-    data.total_storage_usage = int(dataframe.iloc[row, 5].replace('"', ''))
-    data.object_storage_usage = int(dataframe.iloc[row, 6].replace('"', ''))
-    data.video_storage_usage = int(dataframe.iloc[row, 7].replace('"', ''))
-    data.audio_storage_usage = int(dataframe.iloc[row, 8].replace('"', ''))
-    data.image_storage_usage = int(dataframe.iloc[row, 9].replace('"', ''))
-    data.document_storage_usage = int(dataframe.iloc[row, 10].replace('"', ''))
-    data.quota = int(dataframe.iloc[row, 11].replace('"', ''))
-    data.malware_count = int(dataframe.iloc[row, 12].replace('"', ''))
-    data.total_file_count = int(dataframe.iloc[row, 13].replace('"', ''))
-    data.object_file_count = int(dataframe.iloc[row, 14].replace('"', ''))
-    data.video_file_count = int(dataframe.iloc[row, 15].replace('"', ''))
-    data.audio_file_count = int(dataframe.iloc[row, 16].replace('"', ''))
-    data.image_file_count = int(dataframe.iloc[row, 17].replace('"', ''))
-    data.document_file_count = int(dataframe.iloc[row, 18].replace('"', ''))
-    data.trash_file_count = int(dataframe.iloc[row, 19].replace('"', ''))
-    data.last_seen = datetime.strptime(dataframe.iloc[row, 20].replace('"', ''), string_for_convert_date)
-    data.total_share_count = int(dataframe.iloc[row, 21].replace('"', ''))
+    data.customer_extref = first_column[0]
+    data.first_use = datetime.strptime(first_column[1], string_for_convert_date)
+    data.created_date = datetime.strptime(dataframe.iloc[row, 1], string_for_convert_date)
+    data.uuid = dataframe.iloc[row, 2]
+    data.state = int(dataframe.iloc[row, 3])
+    data.total_quota_usage = int(dataframe.iloc[row, 4])
+    data.total_storage_usage = int(dataframe.iloc[row, 5])
+    data.object_storage_usage = int(dataframe.iloc[row, 6])
+    data.video_storage_usage = int(dataframe.iloc[row, 7])
+    data.audio_storage_usage = int(dataframe.iloc[row, 8])
+    data.image_storage_usage = int(dataframe.iloc[row, 9])
+    data.document_storage_usage = int(dataframe.iloc[row, 10])
+    data.quota = int(dataframe.iloc[row, 11])
+    data.malware_count = int(dataframe.iloc[row, 12])
+    data.total_file_count = int(dataframe.iloc[row, 13])
+    data.object_file_count = int(dataframe.iloc[row, 14])
+    data.video_file_count = int(dataframe.iloc[row, 15])
+    data.audio_file_count = int(dataframe.iloc[row, 16])
+    data.image_file_count = int(dataframe.iloc[row, 17])
+    data.document_file_count = int(dataframe.iloc[row, 18])
+    data.trash_file_count = int(dataframe.iloc[row, 19])
+    data.last_seen = datetime.strptime(dataframe.iloc[row, 20], string_for_convert_date)
+    data.total_share_count = int(dataframe.iloc[row, 21])
     data.report_id = report_id
+
     # TODO: Refactor using Regex
     no_digits = []
     for i in first_column[0]:
         if not i.isdigit():
             no_digits.append(i)
     result = ''.join(no_digits)
-    result = result.replace('-', '').replace('"', '')
+    result = result.replace('-', '')
     data.partner = result.replace('sync', '')
+
     return data
 
 

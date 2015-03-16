@@ -285,3 +285,7 @@ ul>li>a.btn-submenu:hover{
 .table-id>a:hover{
     color: #798d8f;
 }
+
+.report{
+    font-size: .8em;
+}
