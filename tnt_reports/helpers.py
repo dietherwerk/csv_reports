@@ -23,6 +23,10 @@ def generate_month_dict():
     return month_dict
 
 
+def delete_selection_dict(dict):
+    del dict['']
+    return dict
+
 def generate_year_dict():
     year_dict = OrderedDict()
     year_now = datetime.now().strftime('%Y')

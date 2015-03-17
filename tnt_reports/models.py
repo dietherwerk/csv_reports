@@ -5,8 +5,8 @@ from datetime import datetime
 from . import db
 
 
-class Report(db.Model):
-    __tablename__ = 'report'
+class CSVFile(db.Model):
+    __tablename__ = 'csvfile'
     id = db.Column(db.Integer, primary_key=True)
     created_date = db.Column(db.DateTime, index=True, default=datetime.now)
     updated_date = db.Column(db.DateTime, nullable=True)
@@ -48,4 +48,12 @@ class Data(db.Model):
     total_share_count = db.Column(db.BigInteger)
     partner = db.Column(db.String(255))
     updated_date = db.Column(db.DateTime, nullable=True, default=datetime.now)
-    report_id = db.Column(db.Integer, db.ForeignKey('report.id'))
+    csvfile_id = db.Column(db.Integer, db.ForeignKey('csvfile.id'))
+    
+    csvfile = db.relationship(CSVFile, foreign_keys=csvfile_id, backref="CSV File")
+
+    # States on Safe Avenue API
+    # 1 - ????
+    # 2 - VALID
+    # 3 - ????
+    # 4 - SUSPEND

@@ -2,6 +2,7 @@
 # Python imports
 import os
 from datetime import datetime
+from collections import OrderedDict
 
 # Framework imports
 from flask import request, redirect, url_for, flash, render_template
@@ -11,38 +12,71 @@ from werkzeug import secure_filename
 from . import app
 from config import UPLOAD_FOLDER, PARTNERS
 from .forms import ReportForm
-from .models import Data, Report
+from .models import Data, CSVFile
 from .processes import allowed_file, report_register
-from .services import Dataset
+from .services import Dataset_report, Dataset_csv
+from .helpers import delete_selection_dict, generate_month_dict, generate_market_dict, generate_year_dict
 
 
 @app.route('/', methods=['GET'])
-def index():
-    query = Report.query.all()
-    return render_template('index.html', reports=query)
+@app.route('/<int:year>', methods=['GET'])
+def index(year=None):
+    if not year:
+        year = datetime.now().year
+    query = CSVFile.query.filter(CSVFile.reference_year == year)
+    months = delete_selection_dict(generate_month_dict())
+    markets = delete_selection_dict(generate_market_dict())
+    years = generate_year_dict()
+
+    dict_numbers = {}
+    dict_validation = {}
+    for key, value in months.items():
+        months = query.filter(CSVFile.reference_month == key)
+        dict_numbers[key, value] = [ 
+            months.filter(CSVFile.market=='Brasil').count(),
+            months.filter(CSVFile.market=='Latam').count(),
+            months.filter(CSVFile.market=='México').count(),
+            ]
+        dict_validation[key, value] = [
+            1,
+            months.count()
+            ]
+    dict_numbers = OrderedDict(sorted(dict_numbers.items(), key=lambda t: t[0]))
+    return render_template('index.html', year=year, years=years, numbers=dict_numbers, validation=dict_validation)
 
 
-@app.route('/report/<int:id>', methods=['GET'])
-def report(id):
-    dataset = Dataset()
-    report = dataset.get_one_report(id)
-    progress = (float(report.processed_rows) / float(report.total_rows)) * 100
-
+@app.route('/report/<int:year>/<int:month>', methods=['GET'])
+def report(year, month):
+    dataset = Dataset_report()
     data = {}
     for partner in PARTNERS:
         data[partner] = [
-            dataset.get_free_users_by_partner(id, partner).count(),
-            dataset.get_paid_users_by_partner(id, partner).count(),
-            dataset.get_free_users_with_used_quota_by_partner(id, partner).count(),
-            dataset.get_free_users_without_used_quota_by_partner(id, partner).count()
+            dataset.get_free_users_with_used_quota_by_partner(month, year, partner).count(),
+            dataset.get_free_users_without_used_quota_by_partner(month, year, partner).count(),
+            dataset.get_free_users_by_partner(month, year, partner).count(),
+            dataset.get_paid_users_with_used_quota_by_partner(month, year, partner).count(),
+            dataset.get_paid_users_without_used_quota_by_partner(month, year, partner).count(),
+            dataset.get_paid_users_by_partner(month, year, partner).count(),
         ]
+    data = OrderedDict(sorted(data.items(), key=lambda t: t[0]))
+    return render_template('report.html', data=data, year=year, month=month)
 
 
-    return render_template('report.html', report=report, data=data, progress=progress)
+@app.route('/csv', methods=['GET'])
+def all_csv():
+    query = CSVFile.query.all()
+    return render_template('all_csv.html', csv=query)
 
 
-@app.route('/new_report', methods=['GET', 'POST'])
-def new_report():
+@app.route('/csv/<int:id>', methods=['GET'])
+def show_csv(id):
+    report = Dataset_csv().get_one_report(id)
+    progress = (float(report.processed_rows) / float(report.total_rows)) * 100
+    return render_template('csv.html', report=report, progress=progress)
+
+
+@app.route('/new_file', methods=['GET', 'POST'])
+def new_file():
     form = ReportForm()
     if form.validate_on_submit():
         file = form.csv.data

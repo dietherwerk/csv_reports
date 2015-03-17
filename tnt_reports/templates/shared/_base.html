@@ -14,11 +14,33 @@
 </head>
 
 <body>
-            <div class="container">
-                {% include "shared/_messages.html" %}
-                {% block content %}{%endblock content %}
+    <div class="header">
+        <div class="container">
+            <div class="col-md-2">
+                Logo titans
             </div>
+            <div class="col-md-8 center">
+                <h1><strong>TNT Sync Reports</strong></h1>
+            </div>
+            <div class="col-md-2">
+                <img src="{{ url_for('static', filename='customs/img/claro-sync.png') }}" style="padding-top: 2em; padding-bottom: 2em">
+            </div>
+        </div>
+    </div>
 
+    <div class="menu">
+        <div class="container">
+            <a class="btn btn-menu" href="{{ url_for('index') }}">Dashboard</a>
+            <a class="btn btn-menu" href="{{ url_for('all_csv') }}">Arquivos Enviados</a>
+            <a class="btn btn-menu" href="{{ url_for('new_file') }}">Novo Arquivos</a>
+            <a class="btn btn-menu">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% include "shared/_messages.html" %}
+        {% block content %}{%endblock content %}
+    </div>
 </body>
 
 {% block scripts %}

@@ -9,52 +9,52 @@ import time
 # App Import
 from . import db
 from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
-from .models import Data, Report
+from .models import Data, CSVFile
 
 
 def report_register(filename, reference_month, reference_year, market):
-    report = create_report(filename, reference_month, reference_year, market)
-    report.processed_rows = 0
-    report.state = u'Processando'
-    db.session.add(report)
+    csvfile = create_report(filename, reference_month, reference_year, market)
+    csvfile.processed_rows = 0
+    csvfile.state = u'Processando'
+    db.session.add(csvfile)
     db.session.commit()
-    thr_import = threading.Thread(target=importing_to_bd, args=[filename, report.id])
+    thr_import = threading.Thread(target=importing_to_bd, args=[filename, csvfile.id])
     thr_import.start()
-    thr_verify = threading.Thread(target=verify_importing, args=[report.id, thr_import])
+    thr_verify = threading.Thread(target=verify_importing, args=[csvfile.id, thr_import])
     thr_verify.start()
 
 
-def importing_to_bd(filename, report_id):
+def importing_to_bd(filename, csvfile_id):
     dataframe = pandas.read_csv(os.path.join(UPLOAD_FOLDER, filename), sep='","')
     dataframe.fillna(value='')
 
-    report = Report.query.get(report_id)
-    report.processed_rows = 0
-    report.state = u'Processando'
-    report.total_rows = len(dataframe.index) - 1
-    db.session.add(report)
+    csvfile = CSVFile.query.get(csvfile_id)
+    csvfile.processed_rows = 0
+    csvfile.state = u'Processando'
+    csvfile.total_rows = len(dataframe.index) - 1
+    db.session.add(csvfile)
     db.session.commit()
 
     for row in xrange(len(dataframe.index)):
         if row == 0:
             continue
-        data = create_data(dataframe, row, report.id)
-        report.processed_rows += 1
-        db.session.add(data, report)
+        data = create_data(dataframe, row, csvfile.id)
+        csvfile.processed_rows += 1
+        db.session.add(data, csvfile)
         db.session.commit()
 
 
 def verify_importing(report_id, thread):
     print "Chamou a thread"
-    report = Report.query.get(report_id)
+    csvfile = CSVFile.query.get(report_id)
     while thread.isAlive():
         time.sleep(45)
     else:
-        if report.processed_rows >= report.total_rows:
-            report.state = u'Sucesso'
+        if csvfile.processed_rows >= csvfile.total_rows:
+            csvfile.state = u'Sucesso'
         else:
-            report.state = u'Falhou'
-        db.session.add(report)
+            csvfile.state = u'Falhou'
+        db.session.add(csvfile)
         db.session.commit()
     return
 
@@ -112,11 +112,11 @@ def create_data(dataframe, row, report_id):
 
 
 def create_report(filename, reference_month, reference_year, market):
-    report = Report()
-    report.filename = filename
-    report.reference_month = reference_month
-    report.reference_year = reference_year
-    report.market = market
-    db.session.add(report)
+    csvfile = CSVFile()
+    csvfile.filename = filename
+    csvfile.reference_month = reference_month
+    csvfile.reference_year = reference_year
+    csvfile.market = market
+    db.session.add(csvfile)
     db.session.commit()
-    return report
+    return csvfile
