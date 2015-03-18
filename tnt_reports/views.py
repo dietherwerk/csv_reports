@@ -5,17 +5,17 @@ from datetime import datetime
 from collections import OrderedDict
 
 # Framework imports
-from flask import request, redirect, url_for, flash, render_template
+from flask import redirect, url_for, flash, render_template
 from werkzeug import secure_filename
 
 # App imports
 from . import app
 from config import UPLOAD_FOLDER, PARTNERS
 from .forms import ReportForm
-from .models import Data, CSVFile
+from .models import CSVFile
 from .processes import allowed_file, report_register
 from .services import Dataset_report, Dataset_csv
-from .helpers import delete_selection_dict, generate_month_dict, generate_market_dict, generate_year_dict
+from .helpers import delete_selection_dict, generate_month_dict, generate_year_dict
 
 
 @app.route('/', methods=['GET'])
@@ -25,17 +25,16 @@ def index(year=None):
         year = datetime.now().year
     query = CSVFile.query.filter(CSVFile.reference_year == year)
     months = delete_selection_dict(generate_month_dict())
-    markets = delete_selection_dict(generate_market_dict())
     years = generate_year_dict()
 
     dict_numbers = {}
     dict_validation = {}
     for key, value in months.items():
         months = query.filter(CSVFile.reference_month == key)
-        dict_numbers[key, value] = [ 
-            months.filter(CSVFile.market=='Brasil').count(),
-            months.filter(CSVFile.market=='Latam').count(),
-            months.filter(CSVFile.market=='México').count(),
+        dict_numbers[key, value] = [
+            months.filter(CSVFile.market == 'Brasil').count(),
+            months.filter(CSVFile.market == 'Latam').count(),
+            months.filter(CSVFile.market == 'México').count(),
             ]
         dict_validation[key, value] = [
             1,
