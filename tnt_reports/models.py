@@ -49,7 +49,7 @@ class Data(db.Model):
     partner = db.Column(db.String(255))
     updated_date = db.Column(db.DateTime, nullable=True, default=datetime.now)
     csvfile_id = db.Column(db.Integer, db.ForeignKey('csvfile.id'))
-    
+
     csvfile = db.relationship(CSVFile, foreign_keys=csvfile_id, backref="CSV File")
 
     # States on Safe Avenue API

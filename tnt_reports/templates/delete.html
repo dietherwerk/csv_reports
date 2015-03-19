@@ -1,0 +1,41 @@
+{% extends "shared/_base.html" %}
+
+{%block title %}Reports{% endblock title %}
+
+
+{% block content %}
+
+
+
+
+
+<h2><i class="fa fa-home"></i>Excluir CSV</h2>
+<h4>{{ report.filename }}<h4>
+
+<hr>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+        <h2 class="panel-title center">Exclusão</h2>
+      </div>
+      <div class="panel-body">
+        <p><strong>Criado em:</strong> {{ report.created_date }} </p>
+        <p><strong>Atualizado em:</strong> {{ report.created_date }}</p>
+        <p><strong>Referência:</strong> {{ report.reference_month }}/{{ report.reference_year }}</p>
+        <p><strong>Mercado:</strong> {{ report.market }}</p>
+        <p><strong>Linhas:</strong> {{ report.total_rows }}</p>
+        <p><strong>Situação:</strong> {{ report.state }}</p>  
+      </div>
+    </div>
+  </div>
+
+  <div class "col-lg-6">
+    <form method="POST" action="">
+      {{ form.hidden_tag() }}
+      {{ form.submit(class='btn btn-warning') }}
+    </form>
+  </div>
+
+{% endblock content %}

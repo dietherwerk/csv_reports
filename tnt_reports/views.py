@@ -10,10 +10,10 @@ from werkzeug import secure_filename
 
 # App imports
 from . import app
-from config import UPLOAD_FOLDER, PARTNERS
-from .forms import ReportForm
+from config import UPLOAD_FOLDER, PARTNERS, QUOTAS
+from .forms import IncludeCSVForm, RemoveCSVForm
 from .models import CSVFile
-from .processes import allowed_file, report_register
+from .processes import allowed_file, report_register, delete_csv
 from .services import Dataset_report, Dataset_csv
 from .helpers import delete_selection_dict, generate_month_dict, generate_year_dict
 
@@ -56,6 +56,13 @@ def report(year, month):
             dataset.get_paid_users_with_used_quota_by_partner(month, year, partner).count(),
             dataset.get_paid_users_without_used_quota_by_partner(month, year, partner).count(),
             dataset.get_paid_users_by_partner(month, year, partner).count(),
+            # >5
+            dataset.get_paid_users_without_used_quota_by_partner(month, year, partner).count(),
+            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['zero'], QUOTAS['one']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['one'], QUOTAS['two']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['two'], QUOTAS['three']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['three'], QUOTAS['four']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['four'], QUOTAS['five']).count(),
         ]
     data = OrderedDict(sorted(data.items(), key=lambda t: t[0]))
     return render_template('report.html', data=data, year=year, month=month)
@@ -69,14 +76,25 @@ def all_csv():
 
 @app.route('/csv/<int:id>', methods=['GET'])
 def show_csv(id):
-    report = Dataset_csv().get_one_report(id)
+    csv = Dataset_csv().get_one_file(id)
     progress = (float(report.processed_rows) / float(report.total_rows)) * 100
-    return render_template('csv.html', report=report, progress=progress)
+    return render_template('csv.html', report=csv, progress=progress)
+
+
+@app.route('/csv/delete/<int:id>', methods=['GET', 'POST'])
+def del_csv(id):
+    csv = Dataset_csv().get_one_file(id)
+    form = RemoveCSVForm()
+    if form.validate_on_submit():
+        delete_csv(csv.id)
+        flash(u'Arquivo apagado com sucesso!')
+        return redirect(url_for('all_csv'))
+    return render_template('delete.html', report=csv, form=form)
 
 
 @app.route('/new_file', methods=['GET', 'POST'])
 def new_file():
-    form = ReportForm()
+    form = IncludeCSVForm()
     if form.validate_on_submit():
         file = form.csv.data
         reference_month = form.reference_month.data
@@ -87,7 +105,7 @@ def new_file():
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             report_register(filename, reference_month, reference_year, market)
             flash(u'Arquivo enviado!')
-            return redirect(url_for('index'))
+            return redirect(url_for('all_csv'))
         else:
             flash(u'O arquivo não está no formato adequado!')
             return render_template('new_report.html', form=form)

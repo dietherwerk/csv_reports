@@ -58,3 +58,12 @@ CSVFORMAT_LIST = [
     ]
 
 PAID_USER_MIN_QUOTA = 10000000000
+
+QUOTAS = {
+    'zero': 0,
+    'one': 1000000000,
+    'two': 2000000000,
+    'three': 3000000000,
+    'four': 4000000000,
+    'five': 5000000000,
+}
