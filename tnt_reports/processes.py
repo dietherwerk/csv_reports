@@ -8,7 +8,7 @@ import time
 
 # App Import
 from . import db
-from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER, CSVFORMAT_LIST
+from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
 from .models import Data, CSVFile
 
 
@@ -25,7 +25,7 @@ def report_register(filename, reference_month, reference_year, market):
 
 
 def importing_to_bd(filename, csvfile_id):
-    dataframe = pandas.read_csv(os.path.join(UPLOAD_FOLDER, filename), sep='","')
+    dataframe = pandas.read_csv(os.path.join(UPLOAD_FOLDER, filename), sep=',')
     dataframe.fillna(value='')
 
     csvfile = CSVFile.query.get(csvfile_id)
@@ -36,10 +36,8 @@ def importing_to_bd(filename, csvfile_id):
     db.session.commit()
 
     for row in xrange(len(dataframe.index)):
-        if row == 0:
-            continue
         create_data(dataframe, row, csvfile.id)
-        csvfile.processed_rows += 1
+
     db.session.add(csvfile)
     db.session.commit()
 
@@ -47,7 +45,8 @@ def importing_to_bd(filename, csvfile_id):
 def verify_importing(report_id, thread):
     csvfile = CSVFile.query.get(report_id)
     while thread.isAlive():
-        time.sleep(45)
+        time.sleep(90)
+        print 'tentativa'
     else:
         if csvfile.processed_rows >= csvfile.total_rows:
             csvfile.state = u'Sucesso'
@@ -55,6 +54,7 @@ def verify_importing(report_id, thread):
             csvfile.state = u'Falhou'
         db.session.add(csvfile)
         db.session.commit()
+        print 'ok'
     return
 
 
@@ -68,44 +68,65 @@ def create_data(dataframe, row, csvfile_id):
     string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
     data = Data()
 
-    # Remove quotes
-    for column in xrange(len(dataframe.columns)):
-        dataframe.iloc[row, column] = dataframe.iloc[row, column].replace('"', '')
-
-    first_column = dataframe.iloc[row, 0].split(',')
-    data.customer_extref = first_column[0]
-    data.first_use = datetime.strptime(first_column[1], string_for_convert_date)
-    data.created_date = datetime.strptime(dataframe.iloc[row, 1], string_for_convert_date)
-    data.uuid = dataframe.iloc[row, 2]
-    data.state = int(dataframe.iloc[row, 3])
-    data.total_quota_usage = int(dataframe.iloc[row, 4])
-    data.total_storage_usage = int(dataframe.iloc[row, 5])
-    data.object_storage_usage = int(dataframe.iloc[row, 6])
-    data.video_storage_usage = int(dataframe.iloc[row, 7])
-    data.audio_storage_usage = int(dataframe.iloc[row, 8])
-    data.image_storage_usage = int(dataframe.iloc[row, 9])
-    data.document_storage_usage = int(dataframe.iloc[row, 10])
-    data.quota = int(dataframe.iloc[row, 11])
-    data.malware_count = int(dataframe.iloc[row, 12])
-    data.total_file_count = int(dataframe.iloc[row, 13])
-    data.object_file_count = int(dataframe.iloc[row, 14])
-    data.video_file_count = int(dataframe.iloc[row, 15])
-    data.audio_file_count = int(dataframe.iloc[row, 16])
-    data.image_file_count = int(dataframe.iloc[row, 17])
-    data.document_file_count = int(dataframe.iloc[row, 18])
-    data.trash_file_count = int(dataframe.iloc[row, 19])
-    data.last_seen = datetime.strptime(dataframe.iloc[row, 20], string_for_convert_date)
-    data.total_share_count = int(dataframe.iloc[row, 21])
+    data.customer_extref = dataframe['Subscription: Customer Ext Ref'][row]
+    data.first_use = datetime.strptime(dataframe['Subscription: First Use'][row], string_for_convert_date)
+    data.created_date = datetime.strptime(dataframe['Subscription: Created Date'][row], string_for_convert_date)
+    data.uuid = dataframe['user: Uuid'][row]
+    data.state = int(dataframe['user: State'][row])
+    data.total_quota_usage = int(dataframe['user: Total quota usage'][row])
+    data.total_storage_usage = int(dataframe['user: Total storage usage'][row])
+    data.object_storage_usage = int(dataframe['user: Object storage usage'][row])
+    data.video_storage_usage = int(dataframe['user: Video storage usage'][row])
+    data.audio_storage_usage = int(dataframe['user: Audio storage usage'][row])
+    data.image_storage_usage = int(dataframe['user: Image storage usage'][row])
+    data.document_storage_usage = int(dataframe['user: Document storage usage'][row])
+    data.quota = int(dataframe['user: Quota'][row])
+    data.malware_count = int(dataframe['user: Total malware count'][row])
+    data.total_file_count = int(dataframe['user: Total file count'][row])
+    data.object_file_count = int(dataframe['user: Object file count'][row])
+    data.video_file_count = int(dataframe['user: Video file count'][row])
+    data.audio_file_count = int(dataframe['user: Audio file count'][row])
+    data.image_file_count = int(dataframe['user: Image file count'][row])
+    data.document_file_count = int(dataframe['user: Document file count'][row])
+    data.trash_file_count = int(dataframe['user: Trash file count'][row])
+    data.last_seen = datetime.strptime(dataframe['user: Last seen date'][row], string_for_convert_date)
+    data.total_share_count = int(dataframe['user: Total share count'][row])
     data.csvfile_id = csvfile_id
 
     # TODO: Refactor using Regex
     no_digits = []
-    for i in first_column[0]:
+    for i in dataframe['Subscription: Customer Ext Ref'][row]:
         if not i.isdigit():
             no_digits.append(i)
     result = ''.join(no_digits)
     result = result.replace('-', '').replace('sync', '')
     data.partner = result
+
+    # dataframe['Safe Avenue: Ext Ref'][row]
+    # dataframe['Safe Avenue: License size'][row]
+    # dataframe['Subscription: Customer Ext Ref'][row]
+    # dataframe['Subscription: First Use'][row]
+    # dataframe['Subscription: Created Date'][row]
+    # dataframe['user: Uuid'][row]
+    # int(dataframe['user: State'][row])
+    # int(dataframe['user: Total quota usage'][row])
+    # int(dataframe['user: Total storage usage'][row])
+    # int(dataframe['user: Object storage usage'][row])
+    # int(dataframe['user: Video storage usage'][row])
+    # int(dataframe['user: Audio storage usage'][row])
+    # int(dataframe['user: Image storage usage'][row])
+    # int(dataframe['user: Document storage usage'][row])
+    # int(dataframe['user: Quota'][row])
+    # int(dataframe['user: Total malware count'][row])
+    # int(dataframe['user: Total file count'][row])
+    # int(dataframe['user: Object file count'][row])
+    # int(dataframe['user: Video file count'][row])
+    # int(dataframe['user: Audio file count'][row])
+    # int(dataframe['user: Image file count'][row])
+    # int(dataframe['user: Document file count'][row])
+    # int(dataframe['user: Trash file count'][row])
+    # dataframe['user: Last seen date'][row]
+    # int(dataframe['user: Total share count'][row])
 
     db.session.add(data)
 

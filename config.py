@@ -9,7 +9,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'csv'])
 SECRET_KEY = 'BDB5DA4AFA58E76F51C8F5CD4794B'
 
 PARTNERS = {
-    'telcelmx',
+    'telcel',
     'claroar',
     'clarobr',
     'clarocl',
@@ -66,4 +66,5 @@ QUOTAS = {
     'three': 3000000000,
     'four': 4000000000,
     'five': 5000000000,
+    'max': 10000000000,
 }

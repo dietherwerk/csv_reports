@@ -5,19 +5,46 @@
 
 {% block content %}
 
-<div class="col-xs-12 col-md-6">
-    <h1><i class="fa fa-upload"></i> Enviar Novo CSV</h1>
-    <form action="{{ url_for ('new_file') }}" method="post" enctype="multipart/form-data">
-        {% for field in form %}
-            <p>
-                {{ field.label }}
-                {{ field(class="form-control") }}
-            </p>
-       {% endfor %}
-       <p>
-        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Salvar</button>
-    </form>
+<h1><i class="fa fa-upload"></i> Enviar Novo CSV</h1>
+<hr>
+<form action="{{ url_for ('new_file') }}" method="post" enctype="multipart/form-data" class="form-inline">
+    {{ form.hidden_tag() }}
+    <div class="col-md-8">
+        <div class="col-xs-3 form-div">
+            <h4>Referência: </h4>
+        </div>
+        <div class="col-xs-9 form-div">
+            {{ form.reference_month(class="form-control", style="width:40%") }} 
+            {{ form.reference_year(class="form-control", style="width:40%") }}
+        </div>
+        <div class="col-xs-3 form-div">
+            <h4>Mercado: </h4>
+        </div>
+        <div class="col-xs-9 form-div">
+            {{ form.market(class="form-control", style="width:100%") }} 
+        </div>
+        <div class="col-xs-3 form-div">
+            <h4>Arquivo: </h4>
+        </div>
+        <div class="col-xs-9 form-div">
+            {{ form.csv(class="form-control", style="width:100%") }} 
+        </div>
+        <div class="col-xs-12 form-div right">
+            <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Salvar</button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h2 class="panel-title center">Atenção</h2>
+            </div>
+            <div class="panel-body">
+                O envio do arquivo só é válido partindo do relatório .csv exportado através da ferramenta da Younited.
+            </div>
+        </div>
+    </div>
+    
+</form>
 
-</div>
 
 {% endblock content %}

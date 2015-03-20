@@ -2,6 +2,9 @@
 <head>
     <title>TNT Reports :: {%block title %}{% endblock title %}</title>
     <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-language" content="pt-br">
+    <meta charset="UTF-8">
     <link rel="shortcut icon" href="{{ url_for('static', filename='customs/img/favicon.ico') }}" type="image/x-icon">
 
     <!-- Components CSS -->
@@ -16,14 +19,11 @@
 <body>
     <div class="header">
         <div class="container">
-            <div class="col-md-2">
-                Logo titans
+            <div class="col-xs-6">
+                <img src="{{ url_for('static', filename='customs/img/logo-titans2014.png') }}" style="padding-top: 1.0em; padding-bottom: 2em">
             </div>
-            <div class="col-md-8 center">
-                <h1><strong>TNT Sync Reports</strong></h1>
-            </div>
-            <div class="col-md-2">
-                <img src="{{ url_for('static', filename='customs/img/claro-sync.png') }}" style="padding-top: 2em; padding-bottom: 2em">
+            <div class="col-xs-6 right">
+                <img src="{{ url_for('static', filename='customs/img/claro-sync.png') }}" style="padding-top: 1.9em; padding-bottom: 2em">
             </div>
         </div>
     </div>
@@ -31,21 +31,26 @@
     <div class="menu">
         <div class="container">
             <a class="btn btn-menu" href="{{ url_for('index') }}">Dashboard</a>
-            <a class="btn btn-menu" href="{{ url_for('all_csv') }}">Arquivos Enviados</a>
-            <a class="btn btn-menu" href="{{ url_for('new_file') }}">Novo Arquivos</a>
+            <a class="btn btn-menu" href="{{ url_for('all_csv') }}">Arquivos Younited</a>
+            <a class="btn btn-menu" href="{{ url_for('all_csv') }}">Arquivos Sync</a>
             <a class="btn btn-menu">Logout</a>
         </div>
     </div>
 
-    <div class="container">
-        {% include "shared/_messages.html" %}
-        {% block content %}{%endblock content %}
-    </div>
+
+        <div class="container">
+            {% include "shared/_messages.html" %}
+            {% block content %}{%endblock content %}
+        </div>
+
+<div class="container footer">
+    <hr>
+    2015 © Titans Group
+</div>
 </body>
 
 {% block scripts %}
     <!-- Components JS -->
     <script src="{{ url_for('static', filename='components/jquery/jquery-1.11.2.min.js') }}"></script>
     <script src="{{ url_for('static', filename='components/bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='customs/js/menu-toggle.js') }}"></script>
 {% endblock scripts %}

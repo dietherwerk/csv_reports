@@ -6,6 +6,8 @@
 {% block content %}
 
 <h2><i class="fa fa-home"></i>Report - {{ month }}/{{ year }}</h2>
+<hr>
+
 <div class="col-md-6">
   	<h3 class="center"> Usuários Gratuítos </h3>
     <div class="table-responsive">
@@ -76,13 +78,13 @@
         {% for partner in data %}
           <tr>
               <td>{{ partner }}</td>
+              <td>{{ data[partner][1] }}</td>
               <td>{{ data[partner][6] }}</td>
               <td>{{ data[partner][7] }}</td>
               <td>{{ data[partner][8] }}</td>
               <td>{{ data[partner][9] }}</td>
               <td>{{ data[partner][10] }}</td>
               <td>{{ data[partner][11] }}</td>
-              <td>{{ data[partner][12] }}</td>
               <td>{{ data[partner][2] }}</td>
           </tr>
         {% endfor %}

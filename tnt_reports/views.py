@@ -57,12 +57,12 @@ def report(year, month):
             dataset.get_paid_users_without_used_quota_by_partner(month, year, partner).count(),
             dataset.get_paid_users_by_partner(month, year, partner).count(),
             # >5
-            dataset.get_paid_users_without_used_quota_by_partner(month, year, partner).count(),
-            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['zero'], QUOTAS['one']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['one'], QUOTAS['two']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['two'], QUOTAS['three']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['three'], QUOTAS['four']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(year, month, partner, QUOTAS['four'], QUOTAS['five']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['zero'], QUOTAS['one']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['one'], QUOTAS['two']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['two'], QUOTAS['three']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['three'], QUOTAS['four']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['four'], QUOTAS['five']).count(),
+            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['five'], QUOTAS['max']).count(),
         ]
     data = OrderedDict(sorted(data.items(), key=lambda t: t[0]))
     return render_template('report.html', data=data, year=year, month=month)
@@ -77,8 +77,7 @@ def all_csv():
 @app.route('/csv/<int:id>', methods=['GET'])
 def show_csv(id):
     csv = Dataset_csv().get_one_file(id)
-    progress = (float(report.processed_rows) / float(report.total_rows)) * 100
-    return render_template('csv.html', report=csv, progress=progress)
+    return render_template('csv.html', report=csv)
 
 
 @app.route('/csv/delete/<int:id>', methods=['GET', 'POST'])

@@ -1,5 +1,6 @@
 from config import PAID_USER_MIN_QUOTA, QUOTAS
 from .models import Data, CSVFile
+from . import db
 
 
 class Dataset_csv(object):
@@ -66,10 +67,9 @@ class Dataset_report(object):
 
     def get_free_user_consumption_range(self, month, year, min_quota, max_quota):
         query = self.get_free_users(month, year)
-        if min_quota == QUOTAS['five']:
-            return query.filter(Data.total_quota_usage > min_quota and Data.total_quota_usage <= max_quota)
-        else:
-            return query.filter(Data.total_quota_usage > min_quota)
+        # import ipdb; ipdb.set_trace()
+        return query.filter(db.text("total_quota_usage>:min and total_quota_usage<=:max")).params(min=min_quota, max=max_quota)
+        # query.filter(Data.total_quota_usage > min_quota and Data.total_quota_usage <= max_quota)
 
     def get_free_user_comsumption_range_by_partner(self, month, year, partner, min_quota, max_quota):
         query = self.get_free_user_consumption_range(month, year, min_quota, max_quota)

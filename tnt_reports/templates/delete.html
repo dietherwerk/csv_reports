@@ -5,20 +5,15 @@
 
 {% block content %}
 
-
-
-
-
 <h2><i class="fa fa-home"></i>Excluir CSV</h2>
 <h4>{{ report.filename }}<h4>
-
 <hr>
 
 <div class="row">
-  <div class="col-lg-6">
+  <div class="col-md-6 col-md-offset-3">
     <div class="panel panel-danger">
       <div class="panel-heading">
-        <h2 class="panel-title center">Exclusão</h2>
+        <h2 class="panel-title center">Dados do Arquivo CSV</h2>
       </div>
       <div class="panel-body">
         <p><strong>Criado em:</strong> {{ report.created_date }} </p>
@@ -30,12 +25,17 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div class "col-lg-6">
+<div class="row text-center">
+  <div class "col-md-8 col-md-offset-2">
     <form method="POST" action="">
       {{ form.hidden_tag() }}
-      {{ form.submit(class='btn btn-warning') }}
+      Tem certeza que deseja excluir esse arquivo?<br>
+      {{ form.submit(class='btn btn-danger') }}
+      <a class="btn btn-info">Voltar</a>
     </form>
   </div>
+</div>
 
 {% endblock content %}
