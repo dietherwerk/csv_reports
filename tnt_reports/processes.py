@@ -2,171 +2,229 @@
 # Python Import
 import os
 from datetime import datetime
-import pandas
-import threading
-import time
+import pandas as pd
 
 # App Import
 from . import db
-from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
-from .models import Data, CSVFile
-
-
-def report_register(filename, reference_month, reference_year, market):
-    csvfile = create_report(filename, reference_month, reference_year, market)
-    csvfile.processed_rows = 0
-    csvfile.state = u'Processando'
-    db.session.add(csvfile)
-    db.session.commit()
-    thr_import = threading.Thread(target=importing_to_bd, args=[filename, csvfile.id])
-    thr_import.start()
-    thr_verify = threading.Thread(target=verify_importing, args=[csvfile.id, thr_import])
-    thr_verify.start()
-
-
-def importing_to_bd(filename, csvfile_id):
-    dataframe = pandas.read_csv(os.path.join(UPLOAD_FOLDER, filename), sep=',')
-    dataframe.fillna(value='')
-
-    csvfile = CSVFile.query.get(csvfile_id)
-    csvfile.processed_rows = 0
-    csvfile.state = u'Processando'
-    csvfile.total_rows = len(dataframe.index) - 1
-    db.session.add(csvfile)
-    db.session.commit()
-
-    for row in xrange(len(dataframe.index)):
-        create_data(dataframe, row, csvfile.id)
-
-    db.session.add(csvfile)
-    db.session.commit()
-
-
-def verify_importing(report_id, thread):
-    csvfile = CSVFile.query.get(report_id)
-    while thread.isAlive():
-        time.sleep(90)
-        print 'tentativa'
-    else:
-        if csvfile.processed_rows >= csvfile.total_rows:
-            csvfile.state = u'Sucesso'
-        else:
-            csvfile.state = u'Falhou'
-        db.session.add(csvfile)
-        db.session.commit()
-        print 'ok'
-    return
+from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER, PARTNERS
+from .models import CSVFile, ReportData, Report
 
 
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-def create_data(dataframe, row, csvfile_id):
-    # Date format in reports: 2015-01-29 00:00:00.0
-    string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
-    data = Data()
-
-    data.customer_extref = dataframe['Subscription: Customer Ext Ref'][row]
-    data.first_use = datetime.strptime(dataframe['Subscription: First Use'][row], string_for_convert_date)
-    data.created_date = datetime.strptime(dataframe['Subscription: Created Date'][row], string_for_convert_date)
-    data.uuid = dataframe['user: Uuid'][row]
-    data.state = int(dataframe['user: State'][row])
-    data.total_quota_usage = int(dataframe['user: Total quota usage'][row])
-    data.total_storage_usage = int(dataframe['user: Total storage usage'][row])
-    data.object_storage_usage = int(dataframe['user: Object storage usage'][row])
-    data.video_storage_usage = int(dataframe['user: Video storage usage'][row])
-    data.audio_storage_usage = int(dataframe['user: Audio storage usage'][row])
-    data.image_storage_usage = int(dataframe['user: Image storage usage'][row])
-    data.document_storage_usage = int(dataframe['user: Document storage usage'][row])
-    data.quota = int(dataframe['user: Quota'][row])
-    data.malware_count = int(dataframe['user: Total malware count'][row])
-    data.total_file_count = int(dataframe['user: Total file count'][row])
-    data.object_file_count = int(dataframe['user: Object file count'][row])
-    data.video_file_count = int(dataframe['user: Video file count'][row])
-    data.audio_file_count = int(dataframe['user: Audio file count'][row])
-    data.image_file_count = int(dataframe['user: Image file count'][row])
-    data.document_file_count = int(dataframe['user: Document file count'][row])
-    data.trash_file_count = int(dataframe['user: Trash file count'][row])
-    data.last_seen = datetime.strptime(dataframe['user: Last seen date'][row], string_for_convert_date)
-    data.total_share_count = int(dataframe['user: Total share count'][row])
-    data.csvfile_id = csvfile_id
-
-    # TODO: Refactor using Regex
-    no_digits = []
-    for i in dataframe['Subscription: Customer Ext Ref'][row]:
-        if not i.isdigit():
-            no_digits.append(i)
-    result = ''.join(no_digits)
-    result = result.replace('-', '').replace('sync', '')
-    data.partner = result
-
-    # dataframe['Safe Avenue: Ext Ref'][row]
-    # dataframe['Safe Avenue: License size'][row]
-    # dataframe['Subscription: Customer Ext Ref'][row]
-    # dataframe['Subscription: First Use'][row]
-    # dataframe['Subscription: Created Date'][row]
-    # dataframe['user: Uuid'][row]
-    # int(dataframe['user: State'][row])
-    # int(dataframe['user: Total quota usage'][row])
-    # int(dataframe['user: Total storage usage'][row])
-    # int(dataframe['user: Object storage usage'][row])
-    # int(dataframe['user: Video storage usage'][row])
-    # int(dataframe['user: Audio storage usage'][row])
-    # int(dataframe['user: Image storage usage'][row])
-    # int(dataframe['user: Document storage usage'][row])
-    # int(dataframe['user: Quota'][row])
-    # int(dataframe['user: Total malware count'][row])
-    # int(dataframe['user: Total file count'][row])
-    # int(dataframe['user: Object file count'][row])
-    # int(dataframe['user: Video file count'][row])
-    # int(dataframe['user: Audio file count'][row])
-    # int(dataframe['user: Image file count'][row])
-    # int(dataframe['user: Document file count'][row])
-    # int(dataframe['user: Trash file count'][row])
-    # dataframe['user: Last seen date'][row]
-    # int(dataframe['user: Total share count'][row])
-
-    db.session.add(data)
-
-
-def create_report(filename, reference_month, reference_year, market):
+def csv_register(filename, reference_month, reference_year, market):
+    dataframe = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename), sep=',')
     csvfile = CSVFile()
     csvfile.filename = filename
     csvfile.reference_month = reference_month
     csvfile.reference_year = reference_year
     csvfile.market = market
+    csvfile.total_rows = len(dataframe.index) - 1
+    csvfile.state = u'Enviado'
     db.session.add(csvfile)
     db.session.commit()
     return csvfile
 
 
-def delete_csv(csvfile_id):
+def csv_edit(csvfile_id, reference_month=None, reference_year=None, market=None):
     csvfile = CSVFile.query.get(csvfile_id)
-    csvfile.state = u'Processando Exclusão'
+    if reference_month:
+        csvfile.reference_month = reference_month
+    if reference_year:
+        csvfile.reference_year = reference_year
+    if market:
+        csvfile.market = market
     db.session.add(csvfile)
     db.session.commit()
-    thr_exclude = threading.Thread(target=delete_process, args=[csvfile_id])
-    thr_verify = threading.Thread(target=verify_delete, args=[csvfile_id, thr_exclude])
-    thr_exclude.start()
-    thr_verify.start()
+    return csvfile
 
 
-def delete_process(csvfile_id):
+def csv_delete(csvfile_id):
     csvfile = CSVFile.query.get(csvfile_id)
-    Data.query.filter(Data.csvfile_id == csvfile.id).delete()
     db.session.delete(csvfile)
     db.session.commit()
 
 
-def verify_delete(report_id, thread):
-    while thread.isAlive():
-        time.sleep(10)
+def create_edit_report(year, month):
+    report = Report.query.filter(Report.reference_month == month and Report.reference_year == year).first()
+    if report:
+        report.updated_date = datetime.utcnow()
     else:
-        if CSVFile.query.get(report_id):
-            csvfile = CSVFile.query.get(report_id)
-            csvfile.state = u'Erro na Exclusão'
-            db.session.add(csvfile)
+        report = Report()   
+        report.reference_year = year
+        report.reference_month = month
+        report.state = 'Novo'
+    db.session.add(report)
+    db.session.commit()
+    return report
+
+
+def change_report_state(report, state):
+    report.state = state
+    db.session.add(report)
+    db.session.commit()
+
+
+def remove_data_from_report(report):
+    reportdata = ReportData.query.filter(ReportData.report_id == report.id)
+    db.session.delete(reportdata)
+    db.session.commit()
+
+
+def create_report_data(reference_year, reference_month):
+    csvfiles = CSVFile.query.filter(CSVFile.reference_month == reference_month and CSVFile.reference_year == reference_year)
+
+    filename_br = csvfiles.filter(CSVFile.market == 'Brasil').first().filename
+    filename_mx = csvfiles.filter(CSVFile.market == 'México').first().filename
+    filename_lt = csvfiles.filter(CSVFile.market == 'Latam').first().filename
+    filename_tt = csvfiles.filter(CSVFile.market == 'Titans').first().filename
+
+    if filename_br and filename_mx and filename_lt and filename_tt:
+        report = create_edit_report(reference_year, reference_month)
+        change_report_state(report, 'Processando')
+        dataframe_br = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_br), sep=',')
+        dataframe_mx = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_mx), sep=',')
+        dataframe_lt = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_lt), sep=',')
+
+        # Importando o csv extraído de SYNC
+        # SELECT
+        #     f.extref, u.partner, up.current_state, up.updated, p.price
+        # FROM
+        #     tntsync.user u
+        #       JOIN
+        #     tntsync.user_package up ON up.user_id = u.id
+        #       JOIN
+        #     tntsync.package p ON up.package_id = p.id
+        #       JOIN
+        #     tntsync.fsecure_migration f ON f.user_id = u.id
+        bd_sync = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_tt), sep=',')
+
+        # Concatenar CSV's
+        # Parâmetro 'ignore_index' serve para que não haja repetição da indexação.
+        # A função do Pandas concat() recebe sempre o valor de lista
+        pieces = [dataframe_br, dataframe_lt, dataframe_mx]
+        big_dataframe = pd.concat(pieces, ignore_index=True)
+
+        # Criando as listas partner e paid.
+        partner = []
+        paid = []
+        for row in big_dataframe['Subscription: Customer Ext Ref']:
+            no_digits = []
+            # TODO: Refazer usando REGEX - Criando o Partner
+            for i in row:
+                if not i.isdigit():
+                    no_digits.append(i)
+            result = ''.join(no_digits)
+            result = result.replace('-', '').replace('sync', '')
+            partner.append(result)
+            # Buscando na base bd_sync o valor do produto
+            try:
+                if bd_sync.loc[bd_sync['extref'] == row]['price'].iloc[0] > 0:
+                    paid.append('Paid')
+                else:
+                    paid.append('Free')
+            except:
+                paid.append('Not Found')
+
+        # Criando os ranges de utilização
+        usage_quota = []
+        for row in big_dataframe['user: Total quota usage']:
+            if row == 0:
+                usage_quota.append('Not Used')
+            elif row > 0 and row < 1000000000:
+                usage_quota.append('0 - 1 GB')
+            elif row >= 1000000000 and row < 2000000000:
+                usage_quota.append('1 - 2 GB')
+            elif row >= 2000000000 and row < 3000000000:
+                usage_quota.append('2 - 3 GB')
+            elif row >= 3000000000 and row < 4000000000:
+                usage_quota.append('3 - 4 GB')
+            elif row >= 4000000000 and row < 5000000000:
+                usage_quota.append('4 - 5 GB')
+            else:
+                usage_quota.append('5 GB or more')
+
+        # Recebendo valor da função para comparações de Data.
+        month = reference_month
+        year = reference_year
+        # String formatada para converter string em datetype
+        string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
+
+        # Criando a coluna de aquisição, se for no mês corrente ele valida como True
+        acquisition_this_month = []
+        for row in big_dataframe['Subscription: Created Date']:
+            acquisition_date = datetime.strptime(row, string_for_convert_date)
+            if acquisition_date.month == month and acquisition_date.year == year:
+                acquisition_this_month.append(True)
+            else:
+                acquisition_this_month.append(False)
+
+        # Criando a coluna de regular_user, se for no mês corrente ele valida como True
+        regular_user = []
+        for row in big_dataframe['user: Last seen date']:
+            last_seen_date = datetime.strptime(row, string_for_convert_date)
+            if last_seen_date.month == month and acquisition_date.year == year:
+                regular_user.append(True)
+            else:
+                regular_user.append(False)
+
+        # TODO: Refazer usando função e map.
+        # TODO: Refazer com a coluna de data de cancelamento.
+
+        # Transformando retornos em séries de Pandas
+        ps = pd.Series(partner)
+        pp = pd.Series(paid)
+        uq = pd.Series(usage_quota)
+        am = pd.Series(acquisition_this_month)
+        ru = pd.Series(regular_user)
+
+        # Criando as colunas através das séries criadas
+        big_dataframe['Partner'] = ps
+        big_dataframe['Paid'] = pp
+        big_dataframe['Usage Quota'] = uq
+        big_dataframe['Acquisition this Month'] = am
+        big_dataframe['Regular User'] = ru
+
+        # Criando os registros no modelo
+
+        for partner in PARTNERS:
+            partnered = big_dataframe[(big_dataframe['Partner'] == partner)]
+            active_users = partnered[(partnered['user: State'] == 2)]
+            free_users = active_users[(active_users['Paid'] == 'Free')]
+            paid_users = active_users[(active_users['Paid'] == 'Paid')]
+            free_users_no_comsumption = free_users[(free_users['user: Total quota usage'] == 0)]
+            free_users_with_comsumption = free_users[(free_users['user: Total quota usage'] > 0)]
+            storage_used = active_users['user: Total quota usage']
+            range_0_1 = free_users[(free_users['Usage Quota'] == '0 - 1 GB')]
+            range_1_2 = free_users[(free_users['Usage Quota'] == '1 - 2 GB')]
+            range_2_3 = free_users[(free_users['Usage Quota'] == '2 - 3 GB')]
+            range_3_4 = free_users[(free_users['Usage Quota'] == '3 - 4 GB')]
+            range_4_5 = free_users[(free_users['Usage Quota'] == '4 - 5 GB')]
+            range_5 = free_users[(free_users['Usage Quota'] == '5 GB or more')]
+            acquisition_on_this_month = active_users[(active_users['Acquisition this Month'] == True)]
+            regular_users = active_users[(active_users['Regular User'] == True)]
+
+            reportdata = ReportData()
+            reportdata.partner = partner
+            reportdata.total_users = int(active_users['Partner'].count())
+            reportdata.free_users = int(free_users['Partner'].count())
+            reportdata.paid_users = int(paid_users['Partner'].count())
+            reportdata.free_users_no_comsumption = int(free_users_no_comsumption['Partner'].count())
+            reportdata.free_users_with_comsumption = int(free_users_with_comsumption['Partner'].count())
+            reportdata.storage_used = int(storage_used.sum())
+            reportdata.range_between_1 = int(range_0_1['Partner'].count())
+            reportdata.range_between_2 = int(range_1_2['Partner'].count())
+            reportdata.range_between_3 = int(range_2_3['Partner'].count())
+            reportdata.range_between_4 = int(range_3_4['Partner'].count())
+            reportdata.range_between_5 = int(range_4_5['Partner'].count())
+            reportdata.range_between_6 = int(range_5['Partner'].count())
+            reportdata.acquisition_on_period = int(acquisition_on_this_month['Partner'].count())
+            reportdata.regular_users = int(regular_users['Partner'].count())
+            reportdata.report_id = report.id
+            db.session.add(reportdata)
             db.session.commit()
-    return
+        change_report_state(report, 'Sucesso')
+    else:
+        change_report_state(report, 'Erro')

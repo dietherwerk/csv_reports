@@ -17,43 +17,48 @@ class CSVFile(db.Model):
     processed_rows = db.Column(db.Integer)
     total_rows = db.Column(db.Integer)
     state = db.Column(db.String(30))
-    datas = db.relationship('Data', backref='datas', lazy='dynamic')
+
+# States on Safe Avenue API
+# 1 - ????
+# 2 - VALID
+# 3 - ????
+# 4 - SUSPEND
 
 
-class Data(db.Model):
-    __tablename__ = 'data'
+class Report(db.Model):
+    __tablename__ = 'report'
     id = db.Column(db.Integer, primary_key=True)
-    customer_extref = db.Column(db.String(255))
-    first_use = db.Column(db.DateTime, nullable=True)
     created_date = db.Column(db.DateTime, index=True, default=datetime.now)
-    uuid = db.Column(db.String(255))
-    state = db.Column(db.BigInteger)
-    total_quota_usage = db.Column(db.BigInteger)
-    total_storage_usage = db.Column(db.BigInteger)
-    object_storage_usage = db.Column(db.BigInteger)
-    video_storage_usage = db.Column(db.BigInteger)
-    audio_storage_usage = db.Column(db.BigInteger)
-    image_storage_usage = db.Column(db.BigInteger)
-    document_storage_usage = db.Column(db.BigInteger)
-    quota = db.Column(db.BigInteger)
-    malware_count = db.Column(db.BigInteger)
-    total_file_count = db.Column(db.BigInteger)
-    object_file_count = db.Column(db.BigInteger)
-    video_file_count = db.Column(db.BigInteger)
-    audio_file_count = db.Column(db.BigInteger)
-    image_file_count = db.Column(db.BigInteger)
-    document_file_count = db.Column(db.BigInteger)
-    trash_file_count = db.Column(db.BigInteger)
-    last_seen = db.Column(db.DateTime, nullable=True)
-    total_share_count = db.Column(db.BigInteger)
+    updated_date = db.Column(db.DateTime, nullable=True)
+    reference_y ear = db.Column(db.Integer)
+    reference_month = db.Column(db.Integer)
+    state = db.Column(db.String(30))
+    datas = db.relationship('ReportData', backref='reportdatas', lazy='dynamic')
+
+
+class ReportData(db.Model):
+    __tablename__ = 'reportdata'
+    id = db.Column(db.Integer, primary_key=True)
     partner = db.Column(db.String(255))
-    updated_date = db.Column(db.DateTime, nullable=True, default=datetime.now)
-    csvfile_id = db.Column(db.Integer, db.ForeignKey('csvfile.id'))
+    total_users = db.Column(db.BigInteger)
+    free_users = db.Column(db.BigInteger)
+    paid_users = db.Column(db.BigInteger)
+    free_users_no_comsumption = db.Column(db.BigInteger)
+    free_users_with_comsumption = db.Column(db.BigInteger)
+    storage_used = db.Column(db.BigInteger)
+    range_between_1 = db.Column(db.BigInteger)
+    range_between_2 = db.Column(db.BigInteger)
+    range_between_3 = db.Column(db.BigInteger)
+    range_between_4 = db.Column(db.BigInteger)
+    range_between_5 = db.Column(db.BigInteger)
+    range_between_6 = db.Column(db.BigInteger)
+    inactives_on_period = db.Column(db.BigInteger)
+    acquisition_on_period = db.Column(db.BigInteger)
+    regular_users = db.Column(db.BigInteger)
+    report_id = db.Column(db.Integer, db.ForeignKey('report.id'))
 
-    csvfile = db.relationship(CSVFile, foreign_keys=csvfile_id, backref="CSV File")
+    report = db.relationship(Report, foreign_keys=report_id, backref="Report")
 
-    # States on Safe Avenue API
-    # 1 - ????
-    # 2 - VALID
-    # 3 - ????
-    # 4 - SUSPEND
+
+# sync-telcel-19357265
+# edb8e901-762a-4496-a504-3464ab15bb65

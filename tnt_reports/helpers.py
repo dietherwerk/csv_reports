@@ -44,6 +44,7 @@ def generate_market_dict():
         u'Brasil': u'Brasil',
         u'Latam': u'Latam',
         u'México': u'México',
+        u'Titans': u'Titans',
     }
     market_dict = OrderedDict(sorted(market_dict.items(), key=lambda t: t[0]))
     return market_dict

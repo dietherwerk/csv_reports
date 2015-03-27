@@ -5,16 +5,16 @@ from datetime import datetime
 from collections import OrderedDict
 
 # Framework imports
-from flask import redirect, url_for, flash, render_template
+from flask import redirect, url_for, flash, render_template, request, redirect
 from werkzeug import secure_filename
 
 # App imports
 from . import app
-from config import UPLOAD_FOLDER, PARTNERS, QUOTAS
+from config import UPLOAD_FOLDER
 from .forms import IncludeCSVForm, RemoveCSVForm
-from .models import CSVFile
-from .processes import allowed_file, report_register, delete_csv
-from .services import Dataset_report, Dataset_csv
+from .models import CSVFile, Report
+from .processes import allowed_file, csv_register, csv_delete, create_report_data, remove_data_from_report
+from .services import Dataset_csv
 from .helpers import delete_selection_dict, generate_month_dict, generate_year_dict
 
 
@@ -23,22 +23,27 @@ from .helpers import delete_selection_dict, generate_month_dict, generate_year_d
 def index(year=None):
     if not year:
         year = datetime.now().year
-    query = CSVFile.query.filter(CSVFile.reference_year == year)
+    csvfile = CSVFile.query.filter(CSVFile.reference_year == year)
+    report = Report.query.filter(Report.reference_year == year)
     months = delete_selection_dict(generate_month_dict())
     years = generate_year_dict()
 
     dict_numbers = {}
     dict_validation = {}
     for key, value in months.items():
-        months = query.filter(CSVFile.reference_month == key)
+        months_csv = csvfile.filter(CSVFile.reference_month == key)
         dict_numbers[key, value] = [
-            months.filter(CSVFile.market == 'Brasil').count(),
-            months.filter(CSVFile.market == 'Latam').count(),
-            months.filter(CSVFile.market == 'México').count(),
+            months_csv.filter(CSVFile.market == 'Brasil').count(),
+            months_csv.filter(CSVFile.market == 'Latam').count(),
+            months_csv.filter(CSVFile.market == 'México').count(),
+            months_csv.filter(CSVFile.market == 'Titans').count(),
             ]
+        months_report = report.filter(Report.reference_month == key)
         dict_validation[key, value] = [
-            1,
-            months.count()
+            months_report.filter(Report.state == 'Sucesso').count(),
+            months_report.filter(Report.state == 'Novo').count(),
+            months_report.count(),
+            months_csv.count()
             ]
     dict_numbers = OrderedDict(sorted(dict_numbers.items(), key=lambda t: t[0]))
     return render_template('index.html', year=year, years=years, numbers=dict_numbers, validation=dict_validation)
@@ -46,26 +51,22 @@ def index(year=None):
 
 @app.route('/report/<int:year>/<int:month>', methods=['GET'])
 def report(year, month):
-    dataset = Dataset_report()
-    data = {}
-    for partner in PARTNERS:
-        data[partner] = [
-            dataset.get_free_users_with_used_quota_by_partner(month, year, partner).count(),
-            dataset.get_free_users_without_used_quota_by_partner(month, year, partner).count(),
-            dataset.get_free_users_by_partner(month, year, partner).count(),
-            dataset.get_paid_users_with_used_quota_by_partner(month, year, partner).count(),
-            dataset.get_paid_users_without_used_quota_by_partner(month, year, partner).count(),
-            dataset.get_paid_users_by_partner(month, year, partner).count(),
-            # >5
-            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['zero'], QUOTAS['one']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['one'], QUOTAS['two']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['two'], QUOTAS['three']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['three'], QUOTAS['four']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['four'], QUOTAS['five']).count(),
-            dataset.get_free_user_comsumption_range_by_partner(month, year, partner, QUOTAS['five'], QUOTAS['max']).count(),
-        ]
-    data = OrderedDict(sorted(data.items(), key=lambda t: t[0]))
-    return render_template('report.html', data=data, year=year, month=month)
+    return render_template('report.html')
+
+
+@app.route('/report/process/<int:year>/<int:month>', methods=['GET'])
+def process(year, month):
+    create_report_data(year, month)
+    flash(u'Relatório sendo processado!')
+    return redirect(request.referrer)
+
+
+@app.route('/report/remove/<int:year>/<int:month>', methods=['GET'])
+def remove(year, month):
+    report = Report.query.filter(Report.reference_month == month and Report.reference_year == year).first()
+    remove_data_from_report(report)
+    flash(u'Relatório excluído!')
+    return redirect(request.referrer)
 
 
 @app.route('/csv', methods=['GET'])
@@ -85,7 +86,7 @@ def del_csv(id):
     csv = Dataset_csv().get_one_file(id)
     form = RemoveCSVForm()
     if form.validate_on_submit():
-        delete_csv(csv.id)
+        csv_delete(csv.id)
         flash(u'Arquivo apagado com sucesso!')
         return redirect(url_for('all_csv'))
     return render_template('delete.html', report=csv, form=form)
@@ -102,7 +103,7 @@ def new_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
-            report_register(filename, reference_month, reference_year, market)
+            csv_register(filename, reference_month, reference_year, market)
             flash(u'Arquivo enviado!')
             return redirect(url_for('all_csv'))
         else:
