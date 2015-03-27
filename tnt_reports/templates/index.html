@@ -48,19 +48,19 @@
 
         		<td class="center">
 
-        			{% if validation[n][0] == 1 %}
+        	{% if validation[n][0] == 1 %}
                 <a href="{{ url_for ('report', year=year, month=n[0]) }}" class="btn btn-info btn-xs"><i class="fa fa-eye"></i></a>
               {% else %}
                 <a href="" class="btn btn-info btn-xs disabled"><i class="fa fa-eye"></i></a>
               {% endif %}
 
-              {% if validation[n][3] == 4 and validation[n][0] == 0 %}
+              {% if validation[n][2] == 4 and validation[n][0] == 0 and validation[n][1] == 0 %}
                 <a href="{{ url_for ('process', year=year, month=n[0]) }}" class="btn btn-success btn-xs"><i class="fa fa-refresh"></i></a>
               {% else %}
                 <a href="" class="btn btn-success btn-xs disabled"><i class="fa fa-refresh"></i></a>
               {% endif %}
 
-              {% if validation[n][2] == 1 %}
+              {% if validation[n][0] == 1 %}
                 <a href="{{ url_for ('remove', year=year, month=n[0]) }}" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
               {% else %}
                 <a href="" class="btn btn-danger btn-xs disabled"><i class="fa fa-trash"></i></a>

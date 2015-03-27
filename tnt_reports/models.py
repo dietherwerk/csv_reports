@@ -30,7 +30,7 @@ class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_date = db.Column(db.DateTime, index=True, default=datetime.now)
     updated_date = db.Column(db.DateTime, nullable=True)
-    reference_y ear = db.Column(db.Integer)
+    reference_year = db.Column(db.Integer)
     reference_month = db.Column(db.Integer)
     state = db.Column(db.String(30))
     datas = db.relationship('ReportData', backref='reportdatas', lazy='dynamic')
@@ -58,7 +58,3 @@ class ReportData(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'))
 
     report = db.relationship(Report, foreign_keys=report_id, backref="Report")
-
-
-# sync-telcel-19357265
-# edb8e901-762a-4496-a504-3464ab15bb65

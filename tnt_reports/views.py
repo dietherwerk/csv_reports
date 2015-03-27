@@ -1,20 +1,21 @@
 # coding: utf-8
 # Python imports
 import os
+import threading
+import time
 from datetime import datetime
 from collections import OrderedDict
 
 # Framework imports
-from flask import redirect, url_for, flash, render_template, request, redirect
+from flask import url_for, flash, render_template, request, redirect
 from werkzeug import secure_filename
 
 # App imports
 from . import app
 from config import UPLOAD_FOLDER
 from .forms import IncludeCSVForm, RemoveCSVForm
-from .models import CSVFile, Report
+from .models import CSVFile, Report, ReportData
 from .processes import allowed_file, csv_register, csv_delete, create_report_data, remove_data_from_report
-from .services import Dataset_csv
 from .helpers import delete_selection_dict, generate_month_dict, generate_year_dict
 
 
@@ -40,9 +41,8 @@ def index(year=None):
             ]
         months_report = report.filter(Report.reference_month == key)
         dict_validation[key, value] = [
-            months_report.filter(Report.state == 'Sucesso').count(),
-            months_report.filter(Report.state == 'Novo').count(),
-            months_report.count(),
+            months_report.filter(Report.state == u'Sucesso').count(),
+            months_report.filter(Report.state == u'Processando').count(),
             months_csv.count()
             ]
     dict_numbers = OrderedDict(sorted(dict_numbers.items(), key=lambda t: t[0]))
@@ -51,12 +51,17 @@ def index(year=None):
 
 @app.route('/report/<int:year>/<int:month>', methods=['GET'])
 def report(year, month):
-    return render_template('report.html')
+    report = Report.query.filter(Report.reference_month == month and Report.reference_year == year).first()
+    reportdata = ReportData.query.filter(ReportData.report_id == report.id).all()
+    return render_template('report.html', report=report, reportdata=reportdata, year=year, month=month)
 
 
 @app.route('/report/process/<int:year>/<int:month>', methods=['GET'])
 def process(year, month):
-    create_report_data(year, month)
+    create = threading.Thread(target=create_report_data, args=[year, month])
+    create.start()
+    # Atraso para mudança de estado na aplicação e impossibilidade de recriar relatório em processamento
+    time.sleep(2)
     flash(u'Relatório sendo processado!')
     return redirect(request.referrer)
 
@@ -77,13 +82,13 @@ def all_csv():
 
 @app.route('/csv/<int:id>', methods=['GET'])
 def show_csv(id):
-    csv = Dataset_csv().get_one_file(id)
+    csv = CSVFile.query.get(id)
     return render_template('csv.html', report=csv)
 
 
 @app.route('/csv/delete/<int:id>', methods=['GET', 'POST'])
 def del_csv(id):
-    csv = Dataset_csv().get_one_file(id)
+    csv = CSVFile.query.get(id)
     form = RemoveCSVForm()
     if form.validate_on_submit():
         csv_delete(csv.id)

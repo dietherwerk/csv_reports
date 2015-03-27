@@ -20,12 +20,12 @@
               <th class="col-md-2">Total</th>
           </tr>
         </thead>
-        {% for partner in data %}
+        {% for data in reportdata %}
 	        <tr>
-	            <td>{{ partner }}</td>
-	            <td>{{ data[partner][0] }}</td>
-	            <td>{{ data[partner][1] }}</td>
-	            <td>{{ data[partner][2] }}</td>
+	            <td>{{ data.partner }}</td>
+	            <td>{{ data.free_users_with_comsumption }}</td>
+	            <td>{{ data.free_users_no_comsumption }}</td>
+	            <td>{{ data.free_users }}</td>
 	        </tr>
         {% endfor %}
       </table>
@@ -39,17 +39,13 @@
         <thead>
           <tr>
               <th class="col-md-6">Partner</th>
-              <th class="col-md-2">Com Uso</th>
-              <th class="col-md-2">Sem Uso</th>
               <th class="col-md-2">Total</th>
           </tr>
         </thead>
-        {% for partner in data %}
+        {% for data in reportdata %}
 	        <tr>
-	            <td>{{ partner }}</td>
-	            <td>{{ data[partner][3] }}</td>
-	            <td>{{ data[partner][4] }}</td>
-	            <td>{{ data[partner][5] }}</td>
+	            <td>{{ data.partner }}</td>
+	            <td>{{ data.paid_users }}</td>
 	        </tr>
         {% endfor %}
       </table>
@@ -75,21 +71,51 @@
               <th class="col-md-2">Total</th>
           </tr>
         </thead>
-        {% for partner in data %}
+        {% for data in reportdata %}
           <tr>
-              <td>{{ partner }}</td>
-              <td>{{ data[partner][1] }}</td>
-              <td>{{ data[partner][6] }}</td>
-              <td>{{ data[partner][7] }}</td>
-              <td>{{ data[partner][8] }}</td>
-              <td>{{ data[partner][9] }}</td>
-              <td>{{ data[partner][10] }}</td>
-              <td>{{ data[partner][11] }}</td>
-              <td>{{ data[partner][2] }}</td>
+              <td>{{ data.partner }}</td>
+              <td>{{ data.free_users_no_comsumption }}</td>
+              <td>{{ data.range_between_1}}</td>
+              <td>{{ data.range_between_2}}</td>
+              <td>{{ data.range_between_3}}</td>
+              <td>{{ data.range_between_4}}</td>
+              <td>{{ data.range_between_5 }}</td>
+              <td>{{ data.range_between_6 }}</td>
+              <td>{{ data.free_users }}</td>
           </tr>
         {% endfor %}
       </table>
     </div>
+</div>
+
+<div class="col-md-12">
+    <h3 class="center"> Atividade </h3>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover center">
+        <thead>
+          <tr>
+              <th class="col-md-4">Partner</th>
+              <th class="col-md-2">Espaço Usado</th>
+              <th class="col-md-2">Inativos</th>
+              <th class="col-md-2">Aquisições</th>
+              <th class="col-md-2">Regular*</th>
+          </tr>
+        </thead>
+        {% for data in reportdata %}
+          <tr>
+              <td>{{ data.partner }}</td>
+              <td>{{ data.storage_used / 1024 / 1024 }} GB</td>
+              <td>{{ data.inactives_on_period}}</td>
+              <td>{{ data.acquisition_on_period}}</td>
+              <td>{{ data.regular_users}}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+</div>
+
+<div class="text-right">
+<i><small>* Usuários que se logaram no último mês</small></i>
 </div>
 
 
