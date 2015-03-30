@@ -52,11 +52,12 @@ class ReportData(db.Model):
     regular_users = db.Column(db.BigInteger)
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'))
 
-    report = db.relationship(Report, foreign_keys=report_id, backref="Report")
+    report_data = db.relationship(Report, foreign_keys=report_id, backref="ReportData")
 
 
 class NotFound(db.Model):
     __tablename__ = 'notfound'
+    id = db.Column(db.Integer, primary_key=True)
     partner = db.Column(db.String(40))
     extref = db.Column(db.String(40))
     uuid = db.Column(db.String(255))
@@ -66,6 +67,9 @@ class NotFound(db.Model):
     usage_quota = db.Column(db.BigInteger)
     last_seen = db.Column(db.DateTime)
     regular_user = db.Boolean()
+    report_id = db.Column(db.Integer, db.ForeignKey('report.id'))
+
+    report_nf = db.relationship(Report, foreign_keys=report_id, backref="ReportNotFound")
 
     # States on Safe Avenue API
     # 1 - ????

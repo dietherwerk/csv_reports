@@ -8,7 +8,7 @@ import pandas as pd
 # App Import
 from . import db
 from config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER, PARTNERS
-from .models import CSVFile, ReportData, Report
+from .models import CSVFile, ReportData, Report, NotFound
 
 
 def allowed_file(filename):
@@ -112,10 +112,18 @@ def create_report_data(year, month):
         pieces = [dataframe_br, dataframe_lt, dataframe_mx]
         big_dataframe = pd.concat(pieces, ignore_index=True)
 
+        # Copiar o extref para a criação do merge
+        big_dataframe['extref'] = big_dataframe['Subscription: Customer Ext Ref']
+
+        # Ordena permanecendo status active primeiro, e remove as duplicatas para merge
+        bd_sync_ordered = bd_sync.sort(['current_state'], ascending=[1])
+        bd_sync_no_duplicate = bd_sync_ordered.drop_duplicates(['extref'])
+        big_dataframe = pd.merge(big_dataframe, bd_sync_no_duplicate, on='extref', how='left')
+
         # Usando map para confecção das tabelas chaves
         big_dataframe['Partner'] = map(get_partner, big_dataframe['Subscription: Customer Ext Ref'])
-        big_dataframe['Paid'] = map(partial(get_user_type, bd_sync=bd_sync), big_dataframe['Subscription: Customer Ext Ref'])
         big_dataframe['Usage Quota'] = map(get_range, big_dataframe['user: Total quota usage'])
+        big_dataframe['Paid'] = map(get_user_type, big_dataframe['price'])
         big_dataframe['Acquisition this Month'] = map(partial(get_dates, year=year, month=month), big_dataframe['Subscription: Created Date'])
         big_dataframe['Regular User'] = map(partial(get_dates, year=year, month=month), big_dataframe['user: Last seen date'])
 
@@ -139,9 +147,9 @@ def get_partner(data):
     return partner
 
 
-def get_user_type(data, bd_sync):
+def get_user_type(data):
     try:
-        if bd_sync.loc[bd_sync['extref'] == data]['price'].iloc[0] > 0:
+        if data > 0:
             paid = 'Paid'
         else:
             paid = 'Free'
