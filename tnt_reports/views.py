@@ -15,7 +15,7 @@ from . import app
 from config import UPLOAD_FOLDER
 from .forms import IncludeCSVForm, RemoveCSVForm
 from .models import CSVFile, Report, ReportData
-from .processes import allowed_file, csv_register, csv_delete, create_report_data, remove_data_from_report
+from .processes import allowed_file, csv_register, csv_delete, create_report_data, remove_data_from_report, create_edit_report, change_report_state
 from .helpers import delete_selection_dict, generate_month_dict, generate_year_dict
 
 
@@ -52,16 +52,16 @@ def index(year=None):
 @app.route('/report/<int:year>/<int:month>', methods=['GET'])
 def report(year, month):
     report = Report.query.filter(Report.reference_month == month and Report.reference_year == year).first()
-    reportdata = ReportData.query.filter(ReportData.report_id == report.id).all()
+    reportdata = ReportData.query.filter(ReportData.report_id == report.id).order_by(ReportData.partner.asc()).all()
     return render_template('report.html', report=report, reportdata=reportdata, year=year, month=month)
 
 
 @app.route('/report/process/<int:year>/<int:month>', methods=['GET'])
 def process(year, month):
-    create = threading.Thread(target=create_report_data, args=[year, month])
+    report = create_edit_report(year, month)
+    change_report_state(report, 'Processando')
+    create = threading.Thread(target=create_report_data, args=[year, month, report.id])
     create.start()
-    # Atraso para mudança de estado na aplicação e impossibilidade de recriar relatório em processamento
-    time.sleep(2)
     flash(u'Relatório sendo processado!')
     return redirect(request.referrer)
 

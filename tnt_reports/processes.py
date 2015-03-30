@@ -77,8 +77,9 @@ def remove_data_from_report(report):
     db.session.commit()
 
 
-def create_report_data(year, month):
+def create_report_data(year, month, report_id):
     csvfiles = CSVFile.query.filter(CSVFile.reference_month == month and CSVFile.reference_year == year)
+    report = Report.query.get(report_id)
 
     filename_br = csvfiles.filter(CSVFile.market == 'Brasil').first().filename
     filename_mx = csvfiles.filter(CSVFile.market == 'México').first().filename
@@ -86,8 +87,6 @@ def create_report_data(year, month):
     filename_tt = csvfiles.filter(CSVFile.market == 'Titans').first().filename
 
     if filename_br and filename_mx and filename_lt and filename_tt:
-        report = create_edit_report(year, month)
-        change_report_state(report, 'Processando')
         dataframe_br = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_br), sep=',')
         dataframe_mx = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_mx), sep=',')
         dataframe_lt = pd.read_csv(os.path.join(UPLOAD_FOLDER, filename_lt), sep=',')
@@ -130,6 +129,7 @@ def create_report_data(year, month):
         # Criando os registros no modelo
         for partner in PARTNERS:
             populate_reportdata(big_dataframe, partner, report)
+        populate_reportdata(big_dataframe, 'Total', report)
 
         change_report_state(report, 'Sucesso')
     else:
@@ -188,7 +188,10 @@ def get_dates(data, year, month):
 
 
 def populate_reportdata(big_dataframe, partner, report):
-    partnered = big_dataframe[(big_dataframe['Partner'] == partner)]
+    if partner == 'Total':
+        partnered = big_dataframe
+    else:
+        partnered = big_dataframe[(big_dataframe['Partner'] == partner)]
     active_users = partnered[(partnered['user: State'] == 2)]
     free_users = active_users[(active_users['Paid'] == 'Free')]
     paid_users = active_users[(active_users['Paid'] == 'Paid')]

@@ -255,3 +255,8 @@ th{
 .right{
     text-align: right;
 }
+
+.table-total{
+    background-color: #C8D8D9;
+    font-weight: bold;
+}

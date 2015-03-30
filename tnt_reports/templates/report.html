@@ -21,7 +21,11 @@
           </tr>
         </thead>
         {% for data in reportdata %}
-	        <tr>
+          {%if data.partner == 'Total' %}
+            <tr class="table-total">
+          {% else %}
+	          <tr>
+          {% endif %}
 	            <td>{{ data.partner }}</td>
 	            <td>{{ data.free_users_with_comsumption }}</td>
 	            <td>{{ data.free_users_no_comsumption }}</td>
@@ -43,7 +47,11 @@
           </tr>
         </thead>
         {% for data in reportdata %}
-	        <tr>
+          {%if data.partner == 'Total' %}
+            <tr class="table-total">
+          {% else %}
+            <tr>
+          {% endif %}
 	            <td>{{ data.partner }}</td>
 	            <td>{{ data.paid_users }}</td>
 	        </tr>
@@ -72,7 +80,11 @@
           </tr>
         </thead>
         {% for data in reportdata %}
-          <tr>
+          {%if data.partner == 'Total' %}
+            <tr class="table-total">
+          {% else %}
+            <tr>
+          {% endif %}
               <td>{{ data.partner }}</td>
               <td>{{ data.free_users_no_comsumption }}</td>
               <td>{{ data.range_between_1}}</td>
@@ -102,7 +114,11 @@
           </tr>
         </thead>
         {% for data in reportdata %}
-          <tr>
+          {%if data.partner == 'Total' %}
+            <tr class="table-total">
+          {% else %}
+            <tr>
+          {% endif %}
               <td>{{ data.partner }}</td>
               <td>{{ data.storage_used / 1024 / 1024 }} GB</td>
               <td>{{ data.inactives_on_period}}</td>
