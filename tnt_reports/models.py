@@ -18,12 +18,6 @@ class CSVFile(db.Model):
     total_rows = db.Column(db.Integer)
     state = db.Column(db.String(30))
 
-# States on Safe Avenue API
-# 1 - ????
-# 2 - VALID
-# 3 - ????
-# 4 - SUSPEND
-
 
 class Report(db.Model):
     __tablename__ = 'report'
@@ -34,6 +28,7 @@ class Report(db.Model):
     reference_month = db.Column(db.Integer)
     state = db.Column(db.String(30))
     datas = db.relationship('ReportData', backref='reportdatas', lazy='dynamic')
+    not_found = db.relationship('NotFound', backref='notfounds', lazy='dynamic')
 
 
 class ReportData(db.Model):
@@ -58,3 +53,22 @@ class ReportData(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'))
 
     report = db.relationship(Report, foreign_keys=report_id, backref="Report")
+
+
+class NotFound(db.Model):
+    __tablename__ = 'notfound'
+    partner = db.Column(db.String(40))
+    extref = db.Column(db.String(40))
+    uuid = db.Column(db.String(255))
+    created_date = db.Column(db.DateTime)
+    state = db.Column(db.Integer)
+    quota = db.Column(db.BigInteger)
+    usage_quota = db.Column(db.BigInteger)
+    last_seen = db.Column(db.DateTime)
+    regular_user = db.Boolean()
+
+    # States on Safe Avenue API
+    # 1 - ????
+    # 2 - VALID
+    # 3 - ????
+    # 4 - SUSPEND
