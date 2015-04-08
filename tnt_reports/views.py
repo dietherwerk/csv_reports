@@ -2,7 +2,6 @@
 # Python imports
 import os
 import threading
-import time
 from datetime import datetime
 from collections import OrderedDict
 
@@ -14,8 +13,8 @@ from werkzeug import secure_filename
 from . import app
 from config import UPLOAD_FOLDER
 from .forms import IncludeCSVForm, RemoveCSVForm
-from .models import CSVFile, Report, ReportData
-from .processes import allowed_file, csv_register, csv_delete, create_report_data, remove_data_from_report, create_edit_report, change_report_state
+from .models import CSVFile, Report, ReportData, NotFound
+from .processes import allowed_file, csv_register, csv_delete, csv_edit, create_report_data, remove_data_from_report, create_edit_report, change_report_state
 from .helpers import delete_selection_dict, generate_month_dict, generate_year_dict
 
 
@@ -77,13 +76,13 @@ def remove(year, month):
 @app.route('/csv', methods=['GET'])
 def all_csv():
     query = CSVFile.query.all()
-    return render_template('all_csv.html', csv=query)
+    return render_template('csv_all.html', csv=query)
 
 
-@app.route('/csv/<int:id>', methods=['GET'])
+@app.route('/csv/show/<int:id>', methods=['GET'])
 def show_csv(id):
     csv = CSVFile.query.get(id)
-    return render_template('csv.html', report=csv)
+    return render_template('csv_show.html', report=csv)
 
 
 @app.route('/csv/delete/<int:id>', methods=['GET', 'POST'])
@@ -94,11 +93,11 @@ def del_csv(id):
         csv_delete(csv.id)
         flash(u'Arquivo apagado com sucesso!')
         return redirect(url_for('all_csv'))
-    return render_template('delete.html', report=csv, form=form)
+    return render_template('csv_delete.html', report=csv, form=form)
 
 
-@app.route('/new_file', methods=['GET', 'POST'])
-def new_file():
+@app.route('/csv/new', methods=['GET', 'POST'])
+def new_csv():
     form = IncludeCSVForm()
     if form.validate_on_submit():
         file = form.csv.data
@@ -114,4 +113,11 @@ def new_file():
         else:
             flash(u'O arquivo não está no formato adequado!')
             return render_template('new_report.html', form=form)
-    return render_template('new_report.html', form=form)
+    return render_template('csv_new.html', form=form)
+
+
+@app.route('/report/notfound/<int:year>/<int:month>', methods=['GET'])
+def notfound(year, month):
+    report = Report.query.filter(Report.reference_month == month and Report.reference_year == year).first()
+    notfound = NotFound.query.filter(NotFound.report_id == report.id and NotFound.state == 2).all()
+    return render_template('notfound.html', notfound=notfound, year=year, month=month)

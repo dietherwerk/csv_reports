@@ -71,7 +71,10 @@ def change_report_state(report, state):
 
 def remove_data_from_report(report):
     reportdata = ReportData.query.filter(ReportData.report_id == report.id).all()
+    notfound = NotFound.query.filter(NotFound.report_id == report.id).all()
     for data in reportdata:
+        db.session.delete(data)
+    for data in notfound:
         db.session.delete(data)
     db.session.delete(report)
     db.session.commit()
@@ -130,8 +133,8 @@ def create_report_data(year, month, report_id):
         for partner in PARTNERS:
             populate_reportdata(big_dataframe, partner, report)
         populate_reportdata(big_dataframe, 'Total', report)
-
         change_report_state(report, 'Sucesso')
+        populate_notfound(big_dataframe, report)
     else:
         change_report_state(report, 'Erro')
 
@@ -177,14 +180,20 @@ def get_range(data):
 
 
 def get_dates(data, year, month):
-        # String formatada para converter string em datetype
-        string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
-        data = datetime.strptime(data, string_for_convert_date)
-        if data.month == month and data.year == year:
-            data = True
-        else:
-            data = False
-        return data
+    # String formatada para converter string em datetype
+    string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
+    data = datetime.strptime(data, string_for_convert_date)
+    if data.month == month and data.year == year:
+        data = True
+    else:
+        data = False
+    return data
+
+
+def get_dates_value(date):
+    string_for_convert_date = '%Y-%m-%d %H:%M:%S.%f'
+    date = datetime.strptime(date, string_for_convert_date)
+    return date
 
 
 def populate_reportdata(big_dataframe, partner, report):
@@ -227,4 +236,23 @@ def populate_reportdata(big_dataframe, partner, report):
     reportdata.regular_users = int(regular_users['Partner'].count())
     reportdata.report_id = report.id
     db.session.add(reportdata)
+    db.session.commit()
+
+
+def populate_notfound(big_dataframe, report):
+    fillna = big_dataframe.fillna('Not found')
+    df_notfound = fillna[fillna.price == 'Not found']
+    for row in df_notfound.index:
+        notfound = NotFound()
+        notfound.partner = df_notfound['Partner'][row]
+        notfound.extref = df_notfound['Subscription: Customer Ext Ref'][row]
+        notfound.uuid = df_notfound['user: Uuid'][row]
+        notfound.created_date = get_dates_value(df_notfound['Subscription: Created Date'][row])
+        notfound.state = int(df_notfound['user: State'][row])
+        NotFound.usage_quota = int(df_notfound['user: Total quota usage'][row])
+        notfound.quota = int(df_notfound['user: Quota'][row])
+        notfound.last_seen = get_dates_value(df_notfound['user: Last seen date'][row])
+        notfound.regular_user = df_notfound['Regular User'][row]
+        notfound.report_id = report.id
+        db.session.add(notfound)
     db.session.commit()

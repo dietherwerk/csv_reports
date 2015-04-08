@@ -108,7 +108,7 @@
           <tr>
               <th class="col-md-4">Partner</th>
               <th class="col-md-2">Espaço Usado</th>
-              <th class="col-md-2">Inativos</th>
+<!--               <th class="col-md-2">Inativos</th> -->
               <th class="col-md-2">Aquisições</th>
               <th class="col-md-2">Regular*</th>
           </tr>
@@ -120,8 +120,8 @@
             <tr>
           {% endif %}
               <td>{{ data.partner }}</td>
-              <td>{{ data.storage_used / 1024 / 1024 }} GB</td>
-              <td>{{ data.inactives_on_period}}</td>
+              <td>{{ (data.storage_used/1024/1024/1024)|round|int }} GB</td>
+<!--               <td>{{ data.inactives_on_period}}</td> -->
               <td>{{ data.acquisition_on_period}}</td>
               <td>{{ data.regular_users}}</td>
           </tr>

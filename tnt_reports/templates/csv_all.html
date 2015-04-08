@@ -1,14 +1,10 @@
 {% extends "shared/_base.html" %}
-
 {%block title %}Home{% endblock title %}
 
-
 {% block content %}
-
-
 <h2>
 	<i class="fa fa-home"></i> Arquivos Enviados
-	<a href="{{ url_for('new_file') }}" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Enviar Novo CSV</a>
+	<a href="{{ url_for('new_csv') }}" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Enviar Novo CSV</a>
 </h2>
 <hr>
 
@@ -21,18 +17,16 @@
               <th>Enviado em</th>
               <th>Período</th>
               <th>Mercado</th>
-              <th>Estado</th>
               <th>Ações</th>
           </tr>
         </thead>
         {% for object in csv %}
 	        <tr>
-	            <td class="col-md-6">{{ object.filename }}</td>
-	            <td class="center col-md-2">{{ object.created_date }}</td>
+	            <td class="col-md-7">{{ object.filename|truncate(70, True) }}</td>
+	            <td class="center col-md-2">{{ object.created_date.strftime('%d/%m/%Y %H:%M') }}</td>
 	            <td class="center col-md-1">
 	            	{{ object.reference_month }}/{{ object.reference_year }}</td>
 	            <td class="center col-md-1">{{ object.market }}</td>
-	            <td class="col-md-1">{{ object.state }}</td>
 	            <td class="center col-md-1">
 	           	 <a href="{{ url_for ('show_csv', id=object.id) }}" class="btn btn-info btn-xs"><i class="fa fa-eye"></i></a>
 	              <a href="{{ url_for ('del_csv', id=object.id) }}" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
@@ -42,5 +36,4 @@
       </table>
     </div>
 </div>
-
 {% endblock content %}

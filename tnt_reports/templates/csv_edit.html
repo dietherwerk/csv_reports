@@ -1,0 +1,44 @@
+{% extends "shared/_base.html" %}
+
+{%block title %}Editar CSV{% endblock title %}
+
+
+{% block content %}
+
+<h1><i class="fa fa-upload"></i> Editar CSV</h1>
+<hr>
+<form action="" method="post" enctype="multipart/form-data" class="form-inline">
+    {{ form.hidden_tag() }}
+    <div class="col-md-8">
+        <div class="col-xs-6 form-div">
+            <h4>Referência: </h4>
+            {{ form.reference_month(class="form-control", style="width: 58%") }} 
+            {{ form.reference_year(class="form-control", style="width: 38%") }}
+        </div>
+        <div class="col-xs-6 form-div">
+            <h4>Mercado: </h4>
+            {{ form.market(class="form-control", style="width:100%") }} 
+        </div>
+        <div class="col-xs-12 form-div">
+            <h4>Arquivo: </h4>
+            {{ csv.filename }} 
+        </div>
+        <div class="col-xs-12 form-div right">
+            <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Salvar</button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <h2 class="panel-title center">Atenção</h2>
+            </div>
+            <div class="panel-body">
+                Não é possível editar o arquivo enviado, se for o caso, apague o arquivo e faça o envio novamente.
+            </div>
+        </div>
+    </div>
+    
+</form>
+
+
+{% endblock content %}
